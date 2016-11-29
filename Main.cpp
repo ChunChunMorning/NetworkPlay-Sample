@@ -7,6 +7,30 @@ struct GameData
 
 };
 
+class Waiting : public SceneBase<String, GameData>
+{
+private:
+
+	Font font;
+
+public:
+
+	void init() override
+	{
+		font = Font(30);
+	}
+
+	void update() override
+	{
+		
+	}
+
+	void draw() const override
+	{
+		font(L"接続待機中...").drawCenter(Window::Height() / 2);
+	}
+};
+
 class Game : public SceneBase<String, GameData>
 {
 private:
@@ -63,6 +87,7 @@ public:
 void Main()
 {
 	SceneManager<String, GameData> manager;
+	manager.add<Waiting>(L"waiting");
 	manager.add<Game>(L"game");
 
 	while (System::Update())
