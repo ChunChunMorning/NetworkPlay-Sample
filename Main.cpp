@@ -1,10 +1,11 @@
 ﻿
 # include <Siv3D.hpp>
 # include <HamFramework.hpp>
+# include "asc\TCPString.hpp"
 
 struct GameData
 {
-
+	asc::TCPStringClient client;
 };
 
 class Waiting : public SceneBase<String, GameData>
@@ -18,11 +19,21 @@ public:
 	void init() override
 	{
 		font = Font(30);
+		m_data->client.connect(IPv4::localhost(), 50000);
 	}
 
 	void update() override
 	{
-		
+		if (m_data->client.isConnected())
+		{
+			changeScene(L"game");
+		}
+
+		if (m_data->client.hasError())
+		{
+			m_data->client.disconnect();
+			m_data->client.connect(IPv4::localhost(), 50000);
+		}
 	}
 
 	void draw() const override
