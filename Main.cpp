@@ -107,17 +107,20 @@ public:
 
 		while (m_data->client.readLine(buffer))
 		{
-			ClearPrint();
-			Print(buffer);
+			buffer.pop_back();
+			const auto args = buffer.split(L',');
 
-			if (buffer == L"parent")
+			if (args[0] == L"isParent")
 			{
 				isParent = true;
 			}
-			else
+			else if (args[0] == L"parent")
 			{
-				leftBarSpeed = Parse<int>(buffer);
-				rightBarSpeed = Parse<int>(buffer);
+				leftBarSpeed = Parse<int>(args[1]);
+			}
+			else if (args[0] == L"child")
+			{
+				rightBarSpeed = Parse<int>(args[1]);
 			}
 		}
 
@@ -135,8 +138,8 @@ public:
 	void draw() const override
 	{
 		ball.draw(Palette::Yellow);
-		leftBar.draw();
-		rightBar.draw();
+		leftBar.draw(isParent ? Palette::Red : Palette::White);
+		rightBar.draw(isParent ? Palette::White : Palette::Red);
 	}
 };
 
