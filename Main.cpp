@@ -1,7 +1,7 @@
 ﻿
 # include <Siv3D.hpp>
 # include <HamFramework.hpp>
-# include "asc\TCPString.hpp"
+# include "asc/TCPString.hpp"
 
 struct GameData
 {
