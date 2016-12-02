@@ -47,9 +47,12 @@ class Game : public SceneBase<String, GameData>
 private:
 
 	Rect leftBar;
+	int leftBarSpeed;
 	Rect rightBar;
+	int rightBarSpeed;
 	Circle ball;
 	Vec2 ballSpeed;
+	String buffer;
 
 	int getInput()
 	{
@@ -76,9 +79,23 @@ public:
 
 	void update() override
 	{
+		if (m_data->client.hasError())
+		{
+			changeScene(L"waiting");
+			return;
+		}
+
+		m_data->client.sendString(Format(getInput(), L'\n'));
+
+		while (m_data->client.readLine(buffer))
+		{
+			leftBarSpeed = Parse<int>(buffer);
+			rightBarSpeed = Parse<int>(buffer);
+		}
+
 		ball.center += 3 * ballSpeed;
-		leftBar.y += 3 * getInput();
-		rightBar.y += 3 * getInput();
+		leftBar.y += 3 * leftBarSpeed;
+		rightBar.y += 3 * rightBarSpeed;
 
 		if (ball.center.y < ball.r || ball.center.y > Window::Height() - ball.r)
 			ballSpeed.y = -ballSpeed.y;
