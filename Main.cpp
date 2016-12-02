@@ -13,6 +13,8 @@ class Waiting : public SceneBase<String, GameData>
 private:
 
 	Font font;
+	bool isReady;
+	String buffer;
 
 public:
 
@@ -24,21 +26,35 @@ public:
 
 	void update() override
 	{
-		if (m_data->client.isConnected())
-		{
-			changeScene(L"game");
-		}
-
 		if (m_data->client.hasError())
 		{
 			m_data->client.disconnect();
 			m_data->client.connect(IPv4::localhost(), 50000);
 		}
+
+		if (m_data->client.readLine(buffer))
+		{
+			if (buffer == L"welcome\n")
+			{
+				isReady = true;
+			}
+			else if (buffer == L"start\n")
+			{
+				changeScene(L"game");
+			}
+		}
 	}
 
 	void draw() const override
 	{
-		font(L"接続待機中...").drawCenter(Window::Height() / 2);
+		if (isReady)
+		{
+			font(L"対戦相手を待っています...").drawCenter(Window::Height() / 2);
+		}
+		else
+		{
+			font(L"接続待機中...").drawCenter(Window::Height() / 2);
+		}
 	}
 };
 
@@ -46,6 +62,7 @@ class Game : public SceneBase<String, GameData>
 {
 private:
 
+	bool isParent;
 	Rect leftBar;
 	int leftBarSpeed;
 	Rect rightBar;
@@ -71,6 +88,7 @@ public:
 
 	void init() override
 	{
+		isParent = false;
 		leftBar = Rect(50, 180, 30, 120);
 		rightBar = Rect(560, 180, 30, 120);
 		ball = Circle(320, 240, 10);
@@ -89,8 +107,18 @@ public:
 
 		while (m_data->client.readLine(buffer))
 		{
-			leftBarSpeed = Parse<int>(buffer);
-			rightBarSpeed = Parse<int>(buffer);
+			ClearPrint();
+			Print(buffer);
+
+			if (buffer == L"parent")
+			{
+				isParent = true;
+			}
+			else
+			{
+				leftBarSpeed = Parse<int>(buffer);
+				rightBarSpeed = Parse<int>(buffer);
+			}
 		}
 
 		ball.center += 2.0 * ballSpeed;
