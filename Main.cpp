@@ -93,7 +93,7 @@ public:
 			rightBarSpeed = Parse<int>(buffer);
 		}
 
-		ball.center += 3 * ballSpeed;
+		ball.center += 2.0 * ballSpeed;
 		leftBar.y += 3 * leftBarSpeed;
 		rightBar.y += 3 * rightBarSpeed;
 
