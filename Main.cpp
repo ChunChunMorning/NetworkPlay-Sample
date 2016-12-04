@@ -14,6 +14,7 @@ private:
 
 	Font font;
 	bool isReady;
+	Optional<int64> time;
 	String buffer;
 
 public:
@@ -21,6 +22,8 @@ public:
 	void init() override
 	{
 		font = Font(30);
+		isReady = false;
+		time = none;
 		m_data->client.connect(IPv4::localhost(), 50000);
 	}
 
@@ -28,20 +31,30 @@ public:
 	{
 		if (m_data->client.hasError())
 		{
+			isReady = false;
+			time = none;
 			m_data->client.disconnect();
 			m_data->client.connect(IPv4::localhost(), 50000);
 		}
 
-		if (m_data->client.readLine(buffer))
+		if (!time.has_value() && m_data->client.readLine(buffer))
 		{
-			if (buffer == L"welcome\n")
+			buffer.pop_back();
+			const auto args = buffer.split(L',');
+
+			if (args[0] == L"welcome")
 			{
 				isReady = true;
 			}
-			else if (buffer == L"start\n")
+			else if (args[0] == L"start")
 			{
-				changeScene(L"game");
+				time = Parse<int64>(args[1]);
 			}
+		}
+
+		if (time.has_value() && time <= Time::SecSince1970())
+		{
+			changeScene(L"game");
 		}
 	}
 
