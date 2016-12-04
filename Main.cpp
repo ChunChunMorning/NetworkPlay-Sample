@@ -63,6 +63,7 @@ class Game : public SceneBase<String, GameData>
 private:
 
 	bool isParent;
+	bool isSendGoal;
 	Rect leftBar;
 	int leftBarSpeed;
 	Rect rightBar;
@@ -89,6 +90,7 @@ public:
 	void init() override
 	{
 		isParent = false;
+		isSendGoal = false;
 		leftBar = Rect(50, 180, 30, 120);
 		rightBar = Rect(560, 180, 30, 120);
 		ball = Circle(320, 240, 10);
@@ -103,7 +105,7 @@ public:
 			return;
 		}
 
-		m_data->client.sendString(Format(getInput(), L'\n'));
+		m_data->client.sendString(Format(L"move,", getInput(), L'\n'));
 
 		while (m_data->client.readLine(buffer))
 		{
@@ -122,6 +124,11 @@ public:
 			{
 				rightBarSpeed = Parse<int>(args[1]);
 			}
+			else if (args[0] == L"goal")
+			{
+				ball.center = Window::Center();
+				isSendGoal = false;
+			}
 		}
 
 		ball.center += 2.0 * ballSpeed;
@@ -129,10 +136,20 @@ public:
 		rightBar.y += 3 * rightBarSpeed;
 
 		if (ball.center.y < ball.r || ball.center.y > Window::Height() - ball.r)
+		{
 			ballSpeed.y = -ballSpeed.y;
+		}
 
 		if (ball.intersects(leftBar) || ball.intersects(rightBar))
+		{
 			ballSpeed.x = -ballSpeed.x;
+		}
+
+		if (!isSendGoal && isParent && (ball.center.x < -ball.r || Window::Width() + ball.r < ball.center.x))
+		{
+			m_data->client.sendString(Format(L"goal\n"));
+			isSendGoal = true;
+		}
 	}
 
 	void draw() const override
