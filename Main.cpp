@@ -20,7 +20,7 @@ public:
 	void init() override
 	{
 		font = Font(30);
-		m_data->client.connect(IPv4::localhost(), 50000);
+		m_data->client.connect(IPv4(127, 0, 0, 1), 50000);
 	}
 
 	void update() override
@@ -28,7 +28,7 @@ public:
 		if (m_data->client.hasError())
 		{
 			m_data->client.disconnect();
-			m_data->client.connect(IPv4::localhost(), 50000);
+			m_data->client.connect(IPv4(127, 0, 0, 1), 50000);
 		}
 
 		if (m_data->client.readLine(buffer))
