@@ -8,12 +8,49 @@ struct GameData
 	asc::TCPStringClient client;
 };
 
+class Connecting : public SceneBase<String, GameData>
+{
+private:
+
+	Font font;
+	String buffer;
+
+public:
+
+	void init() override
+	{
+		font = Font(30);
+		m_data->client.connect(IPv4::localhost(), 50000);
+	}
+
+	void update() override
+	{
+		if (m_data->client.hasError())
+		{
+			m_data->client.disconnect();
+			m_data->client.connect(IPv4::localhost(), 50000);
+		}
+
+		if (m_data->client.readLine(buffer))
+		{
+			if (buffer == L"welcome\n")
+			{
+				changeScene(L"waiting", 0);
+			}
+		}
+	}
+
+	void draw() const override
+	{
+		font(L"接続待機中...").drawCenter(Window::Height() / 2);
+	}
+};
+
 class Waiting : public SceneBase<String, GameData>
 {
 private:
 
 	Font font;
-	bool isReady;
 	Optional<int64> time;
 	String buffer;
 
@@ -22,19 +59,15 @@ public:
 	void init() override
 	{
 		font = Font(30);
-		isReady = false;
 		time = none;
-		m_data->client.connect(IPv4::localhost(), 50000);
 	}
 
 	void update() override
 	{
 		if (m_data->client.hasError())
 		{
-			isReady = false;
-			time = none;
 			m_data->client.disconnect();
-			m_data->client.connect(IPv4::localhost(), 50000);
+			changeScene(L"connecting", 0);
 		}
 
 		if (!time.has_value() && m_data->client.readLine(buffer))
@@ -42,11 +75,7 @@ public:
 			buffer.pop_back();
 			const auto args = buffer.split(L',');
 
-			if (args[0] == L"welcome")
-			{
-				isReady = true;
-			}
-			else if (args[0] == L"start")
+			if (args[0] == L"start")
 			{
 				time = Parse<int64>(args[1]);
 			}
@@ -60,14 +89,7 @@ public:
 
 	void draw() const override
 	{
-		if (isReady)
-		{
-			font(L"対戦相手を待っています...").drawCenter(Window::Height() / 2);
-		}
-		else
-		{
-			font(L"接続待機中...").drawCenter(Window::Height() / 2);
-		}
+		font(L"対戦相手を待っています...").drawCenter(Window::Height() / 2);
 	}
 };
 
@@ -114,7 +136,7 @@ public:
 	{
 		if (m_data->client.hasError())
 		{
-			changeScene(L"waiting");
+			changeScene(L"connecting");
 			return;
 		}
 
@@ -176,6 +198,7 @@ public:
 void Main()
 {
 	SceneManager<String, GameData> manager;
+	manager.add<Connecting>(L"connecting");
 	manager.add<Waiting>(L"waiting");
 	manager.add<Game>(L"game");
 
