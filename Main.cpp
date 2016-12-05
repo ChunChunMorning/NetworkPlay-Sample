@@ -1,5 +1,4 @@
-﻿
-# include <Siv3D.hpp>
+﻿# include <Siv3D.hpp>
 # include <HamFramework.hpp>
 # include "asc/TCPString.hpp"
 
@@ -67,7 +66,8 @@ public:
 		if (m_data->client.hasError())
 		{
 			m_data->client.disconnect();
-			changeScene(L"connecting", 0);
+			changeScene(L"connecting");
+			return;
 		}
 
 		if (!time.has_value() && m_data->client.readLine(buffer))
@@ -136,6 +136,7 @@ public:
 	{
 		if (m_data->client.hasError())
 		{
+			m_data->client.disconnect();
 			changeScene(L"connecting");
 			return;
 		}
